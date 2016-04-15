@@ -1,7 +1,7 @@
 open Core.Std
 open Bistro.Std
 open Bistro_bioinfo.Std
-open Bistro.EDSL_sh
+open Bistro.EDSL_bash
 
 let adapters : fasta workflow =
   Unix_tools.wget
@@ -18,8 +18,8 @@ let fastq_mcf ?quality_threshold ?quality_mean fq1 fq2 =
         option (opt "-q" int) quality_threshold ;
         option (opt "--qual-mean" int) quality_mean ;
         dep adapters ;
-        dep fq1 ;
-        dep fq2 ;
+        seq ~sep:"" [ string "<(gunzip -c " ; dep fq1 ; string ";)" ] ;
+        seq ~sep:"" [ string "<(gunzip -c " ; dep fq2 ; string ";)" ] ;
         opt "-o" ident (dest // fq1_file) ;
         opt "-o" ident (dest // fq2_file) ;
       ]
