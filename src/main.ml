@@ -36,12 +36,11 @@ let pipeline preview_mode fq1_path fq2_path =
   let fa2 = Fastool.fastool trimmed_fq2_gz in
   let trinity_assembly = Trinity.trinity fa1 fa2 in
   Bistro_app.[
-    [ "fasta1" ] %> fa1 ;
     [ "FastQC" ; "initial" ; "1" ] %> initial_fastqc1 ;
     [ "FastQC" ; "initial" ; "2" ] %> initial_fastqc2 ;
     [ "FastQC" ; "post_trimming" ; "1" ] %> post_trimming_fastqc1 ;
     [ "FastQC" ; "post_trimming" ; "2" ] %> post_trimming_fastqc2 ;
-    [ "Trinity" ] %> trinity_assembly ;
+    [ "Trinity_assembly" ] %> trinity_assembly ;
   ]
 
 let main preview_mode fq1_path fq2_path () =
