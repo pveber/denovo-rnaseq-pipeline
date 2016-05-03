@@ -14,7 +14,7 @@ let trinity fa1 fa2 =
       opt "--right" dep fa2 ;
       opt "--CPU" ident np ;
       opt "--max_memory" ident (seq [ string "$((" ; mem ; string " / 1024))G" ]) ;
-      opt "--output" ident dest ;
+      opt "--output" ident tmp_dest ;
     ] ;
     cmd "mv" [
       tmp_dest // "Trinity.fasta" ;
