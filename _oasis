@@ -1,5 +1,5 @@
 OASISFormat: 0.4
-Name:        trinotate
+Name:        prabi-denovo-rnaseq
 Version:     0.0.0
 Synopsis:    Tristan Lefebure's pipeline for de novo RNA-seq
 Authors:     Philippe Veber <philippe.veber@gmail.com>
@@ -7,7 +7,7 @@ License:     GPL-3
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools:  ocamlbuild
 
-Executable "trinotate"
+Executable "prabi-denovo-rnaseq"
   Path:         src
   MainIs:       main.ml
   BuildDepends: bistro.bioinfo, bistro.utils, ppx_bistro, threads
