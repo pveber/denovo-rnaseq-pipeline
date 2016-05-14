@@ -35,12 +35,14 @@ let pipeline preview_mode fq1_path fq2_path =
   let fa1 = Fastool.fastool trimmed_fq1_gz in
   let fa2 = Fastool.fastool trimmed_fq2_gz in
   let trinity_assembly = Trinity.trinity ~mem:(if preview_mode then 8 else 128) fa1 fa2 in
+  let kallisto_run = Kallisto.quant (Kallisto.index [ trinity_assembly ]) trimmed_fq1_gz trimmed_fq2_gz in
   Bistro_app.[
-    [ "FastQC" ; "initial" ; "1" ] %> initial_fastqc1 ;
-    [ "FastQC" ; "initial" ; "2" ] %> initial_fastqc2 ;
-    [ "FastQC" ; "post_trimming" ; "1" ] %> post_trimming_fastqc1 ;
-    [ "FastQC" ; "post_trimming" ; "2" ] %> post_trimming_fastqc2 ;
-    [ "Trinity" ; "assembly.fa" ] %> trinity_assembly ;
+    [ "fastQC" ; "initial" ; "1" ] %> initial_fastqc1 ;
+    [ "fastQC" ; "initial" ; "2" ] %> initial_fastqc2 ;
+    [ "fastQC" ; "post_trimming" ; "1" ] %> post_trimming_fastqc1 ;
+    [ "fastQC" ; "post_trimming" ; "2" ] %> post_trimming_fastqc2 ;
+    [ "trinity" ; "assembly.fa" ] %> trinity_assembly ;
+    [ "kallisto" ] %> kallisto_run ;
   ]
 
 let main preview_mode outdir np mem fq1_path fq2_path () =
