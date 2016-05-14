@@ -34,23 +34,26 @@ let pipeline preview_mode fq1_path fq2_path =
   let post_trimming_fastqc2 = MyFastQC.run trimmed_fq2_gz in
   let fa1 = Fastool.fastool trimmed_fq1_gz in
   let fa2 = Fastool.fastool trimmed_fq2_gz in
-  let trinity_assembly = Trinity.trinity fa1 fa2 in
+  let trinity_assembly = Trinity.trinity ~mem:(if preview_mode then 8 else 128) fa1 fa2 in
   Bistro_app.[
     [ "FastQC" ; "initial" ; "1" ] %> initial_fastqc1 ;
     [ "FastQC" ; "initial" ; "2" ] %> initial_fastqc2 ;
     [ "FastQC" ; "post_trimming" ; "1" ] %> post_trimming_fastqc1 ;
     [ "FastQC" ; "post_trimming" ; "2" ] %> post_trimming_fastqc2 ;
-    [ "Trinity_assembly" ] %> trinity_assembly ;
+    [ "Trinity" ; "assembly.fa" ] %> trinity_assembly ;
   ]
 
-let main preview_mode fq1_path fq2_path () =
+let main preview_mode outdir np mem fq1_path fq2_path () =
   let targets = pipeline preview_mode fq1_path fq2_path in
-  Bistro_app.plan_to_channel targets stdout
+  Bistro_app.local ~outdir ~np ~mem:(mem * 1024) targets
 
 let spec =
   let open Command.Spec in
   empty
   +> flag "--preview-mode" no_arg ~doc:" Run on a small subset of the data"
+  +> flag "--outdir"  (required string) ~doc:"DIR Directory where to link exported targets"
+  +> flag "--np"      (optional_with_default 4 int) ~doc:"INT Number of processors"
+  +> flag "--mem"     (optional_with_default 4 int) ~doc:"INT Available memory (in GB)"
   +> anon ("FQ1" %: file)
   +> anon ("FQ2" %: file)
 
