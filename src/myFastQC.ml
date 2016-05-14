@@ -10,7 +10,5 @@ mkdir $DEST
 set -e
 zcat {{ dep fq_gz }} | fastqc --outdir=$DEST /dev/stdin
 rm -rf $DEST/*.zip
-mv $DEST/*_fastqc/* $DEST
-rm -rf $DEST/*_fastqc
 |}]
 
