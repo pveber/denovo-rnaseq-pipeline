@@ -23,3 +23,5 @@ let quant ?bootstrap_samples idx fq1 fq2 =
       Utils.psgunzip fq2 ;
     ]
   ]
+
+let abundance = selector [ "abundance.tsv" ]

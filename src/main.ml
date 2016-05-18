@@ -15,7 +15,7 @@ let gunzip_fastq_prefix n fq_gz =
     ]
   ]
 
-let pipeline preview_mode fq1_path fq2_path =
+let pipeline preview_mode species fq1_path fq2_path =
   let fq1_gz = Bistro.Workflow.input fq1_path in
   let fq2_gz = Bistro.Workflow.input fq2_path in
   let fq1_gz, fq2_gz =
@@ -36,17 +36,26 @@ let pipeline preview_mode fq1_path fq2_path =
   let fa2 = Fastool.fastool trimmed_fq2_gz in
   let trinity_assembly = Trinity.trinity ~mem:(if preview_mode then 8 else 128) fa1 fa2 in
   let kallisto_run = Kallisto.quant (Kallisto.index [ trinity_assembly ]) trimmed_fq1_gz trimmed_fq2_gz in
+  let transdecoder_run = Transdecoder.transdecoder trinity_assembly in
+  let canonical_transcripts =
+    Transdecoder.(transdecoder_run / cds)
+    |> Utils.rename_contigs species
+    |> Utils.select_contig Kallisto.(kallisto_run / abundance)
+
+  in
   Bistro_app.[
     [ "fastQC" ; "initial" ; "1" ] %> initial_fastqc1 ;
     [ "fastQC" ; "initial" ; "2" ] %> initial_fastqc2 ;
     [ "fastQC" ; "post_trimming" ; "1" ] %> post_trimming_fastqc1 ;
     [ "fastQC" ; "post_trimming" ; "2" ] %> post_trimming_fastqc2 ;
-    [ "trinity" ; "assembly.fa" ] %> trinity_assembly ;
+    [ "trinity_assembly.fa" ] %> trinity_assembly ;
+    [ "transdecoder" ] %> transdecoder_run ;
     [ "kallisto" ] %> kallisto_run ;
+    [ "canonical_transcripts.fa" ] %> canonical_transcripts ;
   ]
 
-let main preview_mode outdir np mem fq1_path fq2_path () =
-  let targets = pipeline preview_mode fq1_path fq2_path in
+let main preview_mode outdir species np mem fq1_path fq2_path () =
+  let targets = pipeline preview_mode species fq1_path fq2_path in
   Bistro_app.local ~outdir ~np ~mem:(mem * 1024) targets
 
 let spec =
@@ -54,6 +63,7 @@ let spec =
   empty
   +> flag "--preview-mode" no_arg ~doc:" Run on a small subset of the data"
   +> flag "--outdir"  (required string) ~doc:"DIR Directory where to link exported targets"
+  +> flag "--species"  (required string) ~doc:"STRING Name of the species the samples are from"
   +> flag "--np"      (optional_with_default 4 int) ~doc:"INT Number of processors"
   +> flag "--mem"     (optional_with_default 4 int) ~doc:"INT Available memory (in GB)"
   +> anon ("FQ1" %: file)
